@@ -1,6 +1,6 @@
 package com.ncc.employee_management.oauth2.user;
 
-import com.ncc.employee_management.entity.User;
+import com.ncc.employee_management.user.User;
 import lombok.Data;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;

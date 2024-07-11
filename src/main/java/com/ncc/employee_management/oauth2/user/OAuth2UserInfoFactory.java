@@ -1,7 +1,7 @@
 package com.ncc.employee_management.oauth2.user;
 
-import com.ncc.employee_management.entity.AuthProvider;
 import com.ncc.employee_management.exception.BadRequestException;
+import com.ncc.employee_management.user.AuthProvider;
 
 import java.util.Map;
 

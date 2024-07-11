@@ -3,16 +3,17 @@ package com.ncc.employee_management.auth;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ncc.employee_management.config.JwtService;
-import com.ncc.employee_management.entity.Token;
-import com.ncc.employee_management.entity.TokenType;
-import com.ncc.employee_management.entity.User;
-import com.ncc.employee_management.repository.TokenRepository;
-import com.ncc.employee_management.repository.UserRepository;
-import com.ncc.employee_management.service.EmailSenderService;
+import com.ncc.employee_management.email.EmailSenderService;
+import com.ncc.employee_management.token.Token;
+import com.ncc.employee_management.token.TokenRepository;
+import com.ncc.employee_management.token.TokenType;
+import com.ncc.employee_management.user.User;
+import com.ncc.employee_management.user.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -23,10 +24,11 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.util.Random;
 
-import static com.ncc.employee_management.entity.Role.USER;
+import static com.ncc.employee_management.user.Role.USER;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AuthenticationService {
 
     private final UserRepository repository;
@@ -36,6 +38,9 @@ public class AuthenticationService {
     private final AuthenticationManager authenticationManager;
     private final EmailSenderService emailSenderService;
 
+    public static String generateCheckinCode() {
+        return String.format("%04d", new Random().nextInt(10000));
+    }
 
     @Transactional
     public AuthenticationResponse register(RegisterRequest request) {
@@ -47,15 +52,21 @@ public class AuthenticationService {
                 .checkinCode(generateCheckinCode())
                 .role(USER)
                 .build();
+
         var savedUser = repository.save(user);
+
         var jwtToken = jwtService.generateToken(user);
         var refreshToken = jwtService.generateRefreshToken(user);
         saveUserToken(savedUser, jwtToken);
+        System.out.println("Current thread: " + Thread.currentThread().getName());
+        log.info("Current thread: " + Thread.currentThread().getName());
 
         String toMail = savedUser.getEmail();
         String subject = "Welcome to the Company";
         String body = "Your check-in code is: " + user.getCheckinCode();
+
         emailSenderService.sendSimpleEmail(toMail, subject, body);
+
 
         return AuthenticationResponse.builder()
                 .accessToken(jwtToken)
@@ -145,9 +156,5 @@ public class AuthenticationService {
                 new ObjectMapper().writeValue(response.getOutputStream(), authResponse);
             }
         }
-    }
-
-    private String generateCheckinCode() {
-        return String.format("%04d", new Random().nextInt(10000));
     }
 }

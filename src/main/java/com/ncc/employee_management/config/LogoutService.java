@@ -1,7 +1,7 @@
 package com.ncc.employee_management.config;
 
 
-import com.ncc.employee_management.repository.TokenRepository;
+import com.ncc.employee_management.token.TokenRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;

@@ -1,7 +1,7 @@
 package com.ncc.employee_management.config;
 
 
-import com.ncc.employee_management.repository.TokenRepository;
+import com.ncc.employee_management.token.TokenRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -66,8 +66,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 authToken.setDetails(
                         new WebAuthenticationDetailsSource().buildDetails(request)
                 );
-                SecurityContextHolder.getContext().setAuthentication(authToken);
+//                We start by creating an empty SecurityContext.
+//                  You should create a new SecurityContext instance instead of using
+//                  SecurityContextHolder.getContext().setAuthentication(authentication)
+//                  to avoid race conditions across multiple threads.
 
+//                SecurityContext context = SecurityContextHolder.createEmptyContext();
+//                context.setAuthentication(authToken);
+//                SecurityContextHolder.setContext(context);
+
+                //	Finally, we set the SecurityContext on the SecurityContextHolder.
+                //	Spring Security uses this information for authorization.
+//                To obtain information about the authenticated principal, access the SecurityContextHolder.
+                SecurityContextHolder.getContext().setAuthentication(authToken);
 
             }
         }

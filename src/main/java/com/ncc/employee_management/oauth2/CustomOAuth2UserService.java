@@ -1,16 +1,17 @@
 package com.ncc.employee_management.oauth2;
 
 
-import com.ncc.employee_management.entity.AuthProvider;
-import com.ncc.employee_management.entity.User;
 import com.ncc.employee_management.exception.BadRequestException;
 import com.ncc.employee_management.exception.OAuth2AuthenticationProcessingException;
 import com.ncc.employee_management.oauth2.user.OAuth2UserInfo;
 import com.ncc.employee_management.oauth2.user.OAuth2UserInfoFactory;
 import com.ncc.employee_management.oauth2.user.UserPrincipal;
-import com.ncc.employee_management.repository.UserRepository;
+import com.ncc.employee_management.user.AuthProvider;
+import com.ncc.employee_management.user.User;
+import com.ncc.employee_management.user.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
@@ -21,10 +22,11 @@ import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
-import static com.ncc.employee_management.entity.Role.USER;
+import static com.ncc.employee_management.user.Role.USER;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     private final UserRepository userRepository;
 
@@ -34,9 +36,6 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         System.out.println("--------------------------");
         OAuth2User oAuth2User = super.loadUser(oAuth2UserRequest);
         try {
-            System.out.println("------------------------------");
-            System.out.println(oAuth2User);
-            System.out.println(oAuth2UserRequest);
             return processOAuth2User(oAuth2UserRequest, oAuth2User);
         } catch (AuthenticationException ex) {
             throw ex;
@@ -52,9 +51,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                         oAuth2UserRequest.getClientRegistration().getRegistrationId(), oAuth2User.getAttributes()
                 );
         System.out.println("before 52");
-        System.out.println(oAuth2UserInfo.getEmail());
-        System.out.println(oAuth2UserInfo.getId());
-        System.out.println(oAuth2UserInfo.getFirstName());
+        log.info(oAuth2UserInfo.toString());
         if (oAuth2UserInfo.getEmail() == null) {
             throw new OAuth2AuthenticationProcessingException("Email not found from OAuth2 provider");
         }
@@ -65,10 +62,6 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         User user;
         if (userOptional.isPresent()) {
             user = userOptional.get();
-            System.out.println(user);
-            System.out.println(oAuth2UserRequest.getClientRegistration());
-            System.out.println(AuthProvider.valueOf(oAuth2UserRequest.getClientRegistration().getRegistrationId()));
-            System.out.println(user.getProvider().toString().toLowerCase());
             if (!user.getProvider().toString().toLowerCase().equalsIgnoreCase(String.valueOf(AuthProvider.valueOf(oAuth2UserRequest.getClientRegistration().getRegistrationId())))) {
                 throw new BadRequestException("Looks like you're signed up with " +
                         user.getProvider() + " account. Please use your " + user.getProvider() +
@@ -76,7 +69,8 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             }
             user = updateExistingUser(user, oAuth2UserInfo);
         } else {
-            user = registerNewUser(oAuth2UserRequest, oAuth2UserInfo);
+            throw new RuntimeException("EMAIL NOT ACCEPT");
+//            user = registerNewUser(oAuth2UserRequest, oAuth2UserInfo);
         }
 
         return UserPrincipal.create(user, oAuth2User.getAttributes());
@@ -94,12 +88,14 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                 .role(USER)
                 .enabled(true)
                 .build();
+        log.info("CREATE USER");
         return userRepository.save(user);
     }
 
     private User updateExistingUser(User existingUser, OAuth2UserInfo oAuth2UserInfo) {
         existingUser.setName(oAuth2UserInfo.getName());
         existingUser.setImageUrl(oAuth2UserInfo.getImageUrl());
+        log.info("UPDATE USER");
         return userRepository.save(existingUser);
     }
 }

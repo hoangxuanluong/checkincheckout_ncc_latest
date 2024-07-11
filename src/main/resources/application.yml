@@ -1,63 +1,23 @@
 spring:
-  devtools:
-    restart:
-      log-condition-evaluation-delta: false
-  datasource:
-    url: jdbc:mysql://localhost:3306/employee-management?createDatabaseIfNotExist=true
-    username: root
-    password: password
-    driver-class-name: com.mysql.cj.jdbc.Driver
-  jpa:
-    hibernate:
-      ddl-auto: update
-    show-sql: true
-    properties:
-      hibernate:
-        format_sql: false
-    database: mysql
-    database-platform: org.hibernate.dialect.MySQL8Dialect
-  mail:
-    host: smtp.gmail.com
-    password: htyrusjamkzpeess
-    port: 587
-    properties:
-      mail:
-        smtp:
-          auth: true
-          starttls:
-            enable: true
-    username: hxluong1611@gmail.com
-  security:
-    oauth2:
-      client:
-        registration:
-          google:
-            client-id: 844172907957-oq5g6c8a21g0158eg3thffeo0o8aeqv7.apps.googleusercontent.com
-            client-secret: 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
-            redirectUri: "{baseUrl}/api/v1/oauth2/callback/{registrationId}"
-            #            redirectUri: "{baseUrl}/api/v1/demo-controller"
-            scope:
-              - email
-              - profile
-
-
-
-application:
-  security:
-    jwt:
-      secret-key: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
-      expiration: 86400000 # a day
-      refresh-token:
-        expiration: 604800000 # 7 days
-
-app:
-  auth:
-    jwt:
-      access-token-secret-key:
-      refresh-token-secret-key:
-      access-token-expiration-in-min: 60
-      refresh-token-expiration-in-day: 30
-      refresh-token-rotation: false
-  oauth2:
-    authorizedRedirectUris:
-      - http://localhost:8080
+  profiles:
+    active: "dev"
+    group:
+      dev:
+        - "common"
+        - "dev"
+      test:
+        - "common"
+        - "test"
+#---
+#spring:
+#  profiles:
+#    include:
+#      - "common"
+#      - "dev"
+#---
+#spring:
+#  profiles:
+#    include:
+#      - "common"
+#      - "test"
+#---
